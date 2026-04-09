@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="가계부">
+<meta name="theme-color" content="#534AB7">
+<link rel="manifest" href="./manifest.json">
+<title>우리집 가계부</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F7F5F0;--sur:#fff;--sur2:#EFECE5;
+  --bd:rgba(0,0,0,.10);--bd2:rgba(0,0,0,.06);
+  --t1:#1A1A18;--t2:#6B6B67;--t3:#AEAEA8;
+  --inc:#0F6E56;--inc-bg:#E1F5EE;
+  --exp:#993C1D;--exp-bg:#FAECE7;
+  --hb:#0C447C;--hb-bg:#E6F1FB;
+  --wb:#72243E;--wb-bg:#FBEAF0;
+  --acc:#534AB7;--acc-bg:#EEEDFE;
+  --st:env(safe-area-inset-top,0px);
+  --sb:env(safe-area-inset-bottom,0px);
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#18171A;--sur:#232128;--sur2:#2C2A31;
+  --bd:rgba(255,255,255,.10);--bd2:rgba(255,255,255,.06);
+  --t1:#F0EDE8;--t2:#9A9AA0;--t3:#5A5A62;
+  --inc:#5DCAA5;--inc-bg:rgba(29,158,117,.15);
+  --exp:#F09975;--exp-bg:rgba(216,90,48,.15);
+  --hb:#85B7EB;--hb-bg:rgba(24,95,165,.15);
+  --wb:#ED93B1;--wb-bg:rgba(153,53,86,.15);
+  --acc:#AFA9EC;--acc-bg:rgba(83,74,183,.2);
+}}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--t1);font-size:14px;-webkit-font-smoothing:antialiased}
+.app{display:flex;flex-direction:column;height:100dvh;max-width:480px;margin:0 auto;background:var(--bg)}
+
+.hd{background:var(--sur);padding:0 16px 12px;padding-top:calc(10px + var(--st));border-bottom:.5px solid var(--bd);flex-shrink:0}
+.hd1{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.logo{font-size:17px;font-weight:700;letter-spacing:-.5px}
+.logo em{color:var(--acc);font-style:normal}
+.sdot{width:8px;height:8px;border-radius:50%;background:var(--t3);transition:background .4s}
+.sdot.ok{background:var(--inc)}.sdot.busy{background:var(--acc);animation:blink 1s infinite}.sdot.err{background:var(--exp)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.mn-row{display:flex;align-items:center;justify-content:space-between}
+.mn-btn{width:32px;height:32px;border-radius:50%;border:none;background:var(--sur2);color:var(--t2);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+.mn-lbl{font-size:15px;font-weight:500}
+.pills{display:flex;gap:6px}
+.pill{padding:4px 12px;border-radius:20px;border:1.5px solid var(--bd);background:transparent;color:var(--t2);font-size:12px;font-weight:500;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .2s;-webkit-tap-highlight-color:transparent}
+.pill.h.on{background:var(--hb-bg);border-color:var(--hb);color:var(--hb)}
+.pill.w.on{background:var(--wb-bg);border-color:var(--wb);color:var(--wb)}
+
+.srow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:12px 16px 8px;flex-shrink:0}
+.sc{background:var(--sur);border-radius:12px;padding:11px 12px;border:.5px solid var(--bd2)}
+.slbl{font-size:11px;color:var(--t3);margin-bottom:3px}
+.sval{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;letter-spacing:-.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sval.i{color:var(--inc)}.sval.e{color:var(--exp)}
+
+.tabs{display:flex;padding:0 16px;border-bottom:.5px solid var(--bd);flex-shrink:0}
+.tab{flex:1;padding:10px 4px;font-size:13px;font-weight:500;color:var(--t3);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .2s;-webkit-tap-highlight-color:transparent}
+.tab.on{color:var(--acc);border-bottom-color:var(--acc)}
+
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 16px;padding-bottom:calc(80px + var(--sb))}
+
+.dg{margin-bottom:14px}
+.dhd{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--t3);font-weight:500;margin-bottom:6px;padding:0 2px}
+.txc{background:var(--sur);border-radius:12px;padding:12px 14px;margin-bottom:6px;border:.5px solid var(--bd2);display:flex;align-items:center;gap:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s}
+.txc:active{transform:scale(.98)}
+.txicon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.txbody{flex:1;min-width:0}
+.txdesc{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.txsub{font-size:11px;color:var(--t3);display:flex;gap:6px;align-items:center}
+.badge{padding:1px 6px;border-radius:4px;font-size:10px;font-weight:500}
+.badge.h{background:var(--hb-bg);color:var(--hb)}.badge.w{background:var(--wb-bg);color:var(--wb)}
+.txamt{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;letter-spacing:-.5px;text-align:right;flex-shrink:0}
+.txamt.i{color:var(--inc)}.txamt.e{color:var(--exp)}
+
+.chips{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{padding:5px 12px;border-radius:20px;border:1px solid var(--bd);background:var(--sur);color:var(--t2);font-size:12px;cursor:pointer;white-space:nowrap;font-family:'Noto Sans KR',sans-serif;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.chip.on{background:var(--acc-bg);border-color:var(--acc);color:var(--acc)}
+
+.ssec{background:var(--sur);border-radius:14px;padding:16px;margin-bottom:12px;border:.5px solid var(--bd2)}
+.stitle{font-size:11px;color:var(--t3);font-weight:500;margin-bottom:14px;text-transform:uppercase;letter-spacing:.5px}
+.brow{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.brow:last-child{margin-bottom:0}
+.blbl{font-size:12px;color:var(--t2);width:32px;flex-shrink:0}
+.btrack{flex:1;height:8px;background:var(--sur2);border-radius:4px;overflow:hidden}
+.bfill{height:100%;border-radius:4px;transition:width .5s ease}
+.bamt{font-family:'DM Mono',monospace;font-size:11px;width:80px;text-align:right;color:var(--t2);flex-shrink:0}
+.citem{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--sur2);border-radius:10px;margin-bottom:6px}
+.citem:last-child{margin-bottom:0}
+.cleft{display:flex;align-items:center;gap:10px}
+.cibox{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.cname{font-size:13px;font-weight:500}.csub{font-size:11px;color:var(--t3);margin-top:1px}
+.camt{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:var(--exp)}
+
+.tgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+
+.fab{position:fixed;bottom:calc(24px + var(--sb));right:calc(50% - min(240px,50vw) + 20px);width:56px;height:56px;border-radius:50%;background:var(--acc);color:#fff;border:none;font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(83,74,183,.35);z-index:200;-webkit-tap-highlight-color:transparent;transition:transform .15s}
+.fab:active{transform:scale(.93)}
+@media(max-width:480px){.fab{right:20px}}
+
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:300;opacity:0;pointer-events:none;transition:opacity .25s}
+.ov.open{opacity:1;pointer-events:all}
+.sheet{background:var(--sur);border-radius:22px 22px 0 0;padding:16px 20px;padding-bottom:calc(20px + var(--sb));width:100%;max-width:480px;max-height:92dvh;overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1)}
+.ov.open .sheet{transform:translateY(0)}
+.shdl{width:36px;height:4px;background:var(--bd);border-radius:2px;margin:0 auto 18px}
+.shtitle{font-size:17px;font-weight:700;margin-bottom:18px}
+.togrow{display:flex;gap:8px;margin-bottom:14px}
+.tbtn{flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--bd);background:transparent;color:var(--t2);font-size:13px;font-weight:500;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .2s;-webkit-tap-highlight-color:transparent}
+.tbtn.exp.on{background:var(--exp-bg);border-color:var(--exp);color:var(--exp)}
+.tbtn.inc.on{background:var(--inc-bg);border-color:var(--inc);color:var(--inc)}
+.tbtn.hh.on{background:var(--hb-bg);border-color:var(--hb);color:var(--hb)}
+.tbtn.ww.on{background:var(--wb-bg);border-color:var(--wb);color:var(--wb)}
+.fg{margin-bottom:14px}
+.flbl{font-size:12px;color:var(--t3);font-weight:500;margin-bottom:6px}
+.finp{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--bd);background:var(--sur2);color:var(--t1);font-size:15px;font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .2s;-webkit-appearance:none}
+.finp:focus{border-color:var(--acc)}
+.cgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.cbtn{padding:10px 4px;border-radius:10px;border:1px solid var(--bd);background:var(--sur2);color:var(--t2);font-size:11px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;-webkit-tap-highlight-color:transparent;transition:all .15s}
+.cbtn .ei{font-size:20px;line-height:1}
+.cbtn.on{background:var(--acc-bg);border-color:var(--acc);color:var(--acc)}
+.subbtn{width:100%;padding:15px;border-radius:12px;background:var(--acc);color:#fff;border:none;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;-webkit-tap-highlight-color:transparent}
+.subbtn:disabled{opacity:.5}
+.delbtn{width:100%;padding:13px;border-radius:12px;background:transparent;color:var(--exp);border:1px solid var(--exp);font-size:14px;font-weight:500;cursor:pointer;font-family:'Noto Sans KR',sans-serif;margin-top:8px;-webkit-tap-highlight-color:transparent}
+.delbtn:active{background:var(--exp-bg)}
+
+.setup{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;z-index:500;overflow-y:auto}
+.setup-logo{font-size:52px;margin-bottom:16px}
+.setup-h{font-size:24px;font-weight:700;margin-bottom:8px;text-align:center}
+.setup-sub{font-size:14px;color:var(--t2);text-align:center;margin-bottom:28px;line-height:1.7}
+.setup-card{background:var(--sur);border-radius:16px;padding:20px;width:100%;max-width:360px;border:.5px solid var(--bd);margin-bottom:12px}
+.setup-ct{font-size:13px;font-weight:700;margin-bottom:4px;color:var(--acc)}
+.setup-cd{font-size:12px;color:var(--t2);line-height:1.6;margin-bottom:14px}
+.setup-inp{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--bd);background:var(--sur2);color:var(--t1);font-size:14px;font-family:'Noto Sans KR',sans-serif;outline:none;margin-bottom:10px;-webkit-appearance:none}
+.setup-inp:focus{border-color:var(--acc)}
+.setup-btn{width:100%;padding:14px;border-radius:12px;background:var(--acc);color:#fff;border:none;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif}
+
+.empty{text-align:center;padding:60px 20px;color:var(--t3)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+
+.toast{position:fixed;bottom:calc(100px + var(--sb));left:50%;transform:translateX(-50%) translateY(16px);background:rgba(20,20,20,.92);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;z-index:999;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div class="setup" id="setup">
+  <div class="setup-logo">🏠</div>
+  <div class="setup-h">우리집 가계부</div>
+  <div class="setup-sub">두 분이 함께 실시간으로<br>공유하는 가계부예요</div>
+  <div class="setup-card">
+    <div class="setup-ct">🔑 공유 코드</div>
+    <div class="setup-cd">두 분이 같은 코드를 입력하면 자동 동기화됩니다. 원하는 단어로 정하세요.</div>
+    <input class="setup-inp" id="sCode" type="text" placeholder="예: 우리집2024" autocorrect="off" spellcheck="false">
+    <input class="setup-inp" id="sName" type="text" placeholder="내 이름 (남편 또는 아내)">
+    <button class="setup-btn" onclick="doSetup()">시작하기</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="app" id="app" style="display:none">
+  <div class="hd">
+    <div class="hd1">
+      <div class="logo">우리집 <em>가계부</em></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="sdot" id="sdot"></div>
+        <div class="pills">
+          <button class="pill h" id="ph" onclick="toggleUser('husband')">남편</button>
+          <button class="pill w" id="pw" onclick="toggleUser('wife')">아내</button>
+        </div>
+      </div>
+    </div>
+    <div class="mn-row">
+      <button class="mn-btn" onclick="chMonth(-1)">‹</button>
+      <div class="mn-lbl" id="mnLbl"></div>
+      <button class="mn-btn" onclick="chMonth(1)">›</button>
+    </div>
+  </div>
+
+  <div class="srow" id="srow"></div>
+
+  <div class="tabs">
+    <button class="tab on" data-tab="list" onclick="setTab(this)">내역</button>
+    <button class="tab" data-tab="stats" onclick="setTab(this)">통계</button>
+    <button class="tab" data-tab="together" onclick="setTab(this)">함께</button>
+  </div>
+
+  <div class="scroll" id="scroll"></div>
+  <button class="fab" onclick="openAdd()">+</button>
+</div>
+
+<!-- BOTTOM SHEET -->
+<div class="ov" id="ov" onclick="mayClose(event)">
+  <div class="sheet">
+    <div class="shdl"></div>
+    <div class="shtitle" id="shtitle">내역 추가</div>
+    <div class="togrow">
+      <button class="tbtn exp" id="bExp" onclick="setType('expense')">지출</button>
+      <button class="tbtn inc" id="bInc" onclick="setType('income')">수입</button>
+    </div>
+    <div class="fg"><div class="flbl">금액</div>
+      <input class="finp" id="fAmt" type="number" placeholder="0" inputmode="numeric" style="font-family:'DM Mono',monospace">
+    </div>
+    <div class="fg"><div class="flbl">내용</div>
+      <input class="finp" id="fDesc" type="text" placeholder="어디에 썼나요?">
+    </div>
+    <div class="fg"><div class="flbl">카테고리</div>
+      <div class="cgrid" id="cgrid"></div>
+    </div>
+    <div class="fg"><div class="flbl">날짜</div>
+      <input class="finp" id="fDate" type="date">
+    </div>
+    <div class="fg"><div class="flbl">누가?</div>
+      <div class="togrow" style="margin-bottom:0">
+        <button class="tbtn hh" id="bH" onclick="setFUser('husband')">남편</button>
+        <button class="tbtn ww" id="bW" onclick="setFUser('wife')">아내</button>
+      </div>
+    </div>
+    <button class="subbtn" id="subbtn" onclick="doSubmit()">추가하기</button>
+    <button class="delbtn" id="delbtn" style="display:none" onclick="doDelete()">삭제하기</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════════════════════════════════
+     Firebase — 아래 config를 본인 값으로 교체
+     ══════════════════════════════════════════ -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import {
+  getFirestore, collection, addDoc, updateDoc, deleteDoc,
+  doc, onSnapshot, query, where, orderBy
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const FB_CONFIG = {
+  apiKey: "AIzaSyD4cWryNM4-aTqivdrGKH69PnK2n9iI1E8",
+    authDomain: "my-budget-app-60898.firebaseapp.com",
+    projectId: "my-budget-app-60898",
+    storageBucket: "my-budget-app-60898.firebasestorage.app",
+    messagingSenderId: "1038881843600",
+    appId: "1:1038881843600:web:ae5ec46c4de58edcb2eb15"
+};
+
+let db;
+let currentUnsub = null;
+
+try {
+  const fbApp = initializeApp(FB_CONFIG);
+  db = getFirestore(fbApp);
+} catch(e) {
+  console.error('[Firebase] init failed:', e);
+  window.__fbError = e.message;
+}
+
+// onSnapshot 구독 — Firestore가 추가/수정/삭제를 감지하면 자동으로 콜백 호출
+window.__subscribe = function(room, cb) {
+  if (currentUnsub) currentUnsub();   // 이전 구독 해제
+  if (!db) { cb(new Error('Firebase 미연결'), null); return; }
+
+  const q = query(
+    collection(db, 'transactions'),
+    where('room', '==', room),
+    orderBy('date', 'desc')
+  );
+
+  currentUnsub = onSnapshot(q,
+    snapshot => {
+      const list = [];
+      snapshot.forEach(d => list.push({ id: d.id, ...d.data() }));
+      cb(null, list);
+    },
+    err => cb(err, null)
+  );
+};
+
+window.__add = async (room, data) => {
+  if (!db) throw new Error('Firebase 미연결');
+  const ref = await addDoc(collection(db, 'transactions'), {
+    room, ...data, ts: Date.now()
+  });
+  return ref.id;
+};
+
+window.__update = async (id, data) => {
+  if (!db) throw new Error('Firebase 미연결');
+  await updateDoc(doc(db, 'transactions', id), { ...data, ts: Date.now() });
+};
+
+window.__delete = async (id) => {
+  if (!db) throw new Error('Firebase 미연결');
+  await deleteDoc(doc(db, 'transactions', id));
+};
+
+// 모듈 로드 완료 신호
+window.__fbLoaded = true;
+window.dispatchEvent(new Event('fb-ready'));
+</script>
+
+<script>
+// ── 카테고리 ──
+const CE = [
+  {id:'food',n:'식비',e:'🍚'},{id:'cafe',n:'카페',e:'☕'},
+  {id:'shop',n:'쇼핑',e:'🛍'},{id:'transport',n:'교통',e:'🚇'},
+  {id:'health',n:'의료',e:'💊'},{id:'beauty',n:'미용',e:'💄'},
+  {id:'culture',n:'문화',e:'🎬'},{id:'util',n:'공과금',e:'💡'},
+  {id:'edu',n:'교육',e:'📚'},{id:'pet',n:'반려',e:'🐾'},
+  {id:'travel',n:'여행',e:'✈️'},{id:'etc',n:'기타',e:'💸'},
+];
+const CI = [
+  {id:'salary',n:'급여',e:'💼'},{id:'bonus',n:'보너스',e:'🎁'},
+  {id:'invest',n:'투자',e:'📈'},{id:'etc_in',n:'기타',e:'💰'},
+];
+const CC = {
+  food:'#D85A30',cafe:'#BA7517',shop:'#993556',transport:'#185FA5',
+  health:'#0F6E56',beauty:'#D4537E',culture:'#534AB7',util:'#639922',
+  edu:'#0C447C',pet:'#085041',travel:'#534AB7',etc:'#888780',
+  salary:'#0F6E56',bonus:'#BA7517',invest:'#185FA5',etc_in:'#888780',
+};
+const getcat = id => [...CE,...CI].find(c=>c.id===id) || {e:'💸',n:'기타'};
+
+// ── 상태 ──
+let txs = [];        // onSnapshot이 항상 최신값으로 갱신
+let room = '';
+let myName = '';
+let curMonth = new Date();
+let viewUser = 'all';
+let curTab = 'list';
+let fChip = 'all';
+let fType = 'expense';
+let fUser = 'husband';
+let fCat = '';
+let editId = null;
+let submitting = false;  // 중복 제출 방지
+
+// ── 초기화 ──
+window.addEventListener('DOMContentLoaded', () => {
+  room = localStorage.getItem('budget_room') || '';
+  myName = localStorage.getItem('budget_name') || '';
+  if (room) showApp();
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  }
+});
+
+function doSetup() {
+  const code = (document.getElementById('sCode').value||'').trim();
+  const name = (document.getElementById('sName').value||'').trim();
+  if (!code) { toast('공유 코드를 입력해주세요'); return; }
+  if (!name) { toast('이름을 입력해주세요'); return; }
+  room = code.replace(/\s+/g,'_');
+  myName = name;
+  localStorage.setItem('budget_room', room);
+  localStorage.setItem('budget_name', myName);
+  showApp();
+}
+
+function showApp() {
+  document.getElementById('setup').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+
+  setSyncDot('busy');
+  render(); // 빈 화면이라도 즉시 표시
+
+  // Firebase 모듈이 로드될 때까지 대기 후 구독
+  const startSub = () => {
+    window.__subscribe(room, (err, list) => {
+      if (err) {
+        console.error('[onSnapshot]', err);
+        setSyncDot('err');
+        // Firestore index 오류 안내
+        if (err.code === 'failed-precondition' || err.message.includes('index')) {
+          toast('Firestore 인덱스 설정이 필요합니다. README를 확인하세요.');
+        } else {
+          toast('동기화 오류: ' + err.message);
+        }
+        return;
+      }
+      // ★ 핵심: onSnapshot 콜백마다 txs 갱신 & 화면 재렌더
+      txs = list;
+      setSyncDot('ok');
+      render();
+    });
+  };
+
+  if (window.__fbLoaded) {
+    startSub();
+  } else {
+    window.addEventListener('fb-ready', startSub, { once: true });
+    // 5초 후에도 안 되면 에러 표시
+    setTimeout(() => {
+      if (!window.__fbLoaded) {
+        setSyncDot('err');
+        toast('Firebase 연결 실패. config를 확인하세요.');
+      }
+    }, 5000);
+  }
+}
+
+// ── 유틸 ──
+const fmt = n => '₩' + Math.abs(Math.round(n)).toLocaleString('ko-KR');
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const today = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+};
+
+function setSyncDot(s) {
+  const d = document.getElementById('sdot');
+  if (d) d.className = 'sdot ' + s;
+}
+
+let _toastTimer;
+function toast(msg, dur=2500) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), dur);
+}
+
+function monthTxs() {
+  const y = curMonth.getFullYear(), m = curMonth.getMonth();
+  return txs.filter(t => {
+    const d = new Date(t.date + 'T00:00:00');
+    if (d.getFullYear()!==y || d.getMonth()!==m) return false;
+    if (viewUser!=='all' && t.user!==viewUser) return false;
+    return true;
+  });
+}
+
+// ── RENDER ──
+function render() {
+  // 헤더
+  const y = curMonth.getFullYear(), m = curMonth.getMonth()+1;
+  document.getElementById('mnLbl').textContent = `${y}년 ${m}월`;
+  document.getElementById('ph').classList.toggle('on', viewUser==='husband');
+  document.getElementById('pw').classList.toggle('on', viewUser==='wife');
+
+  // 요약
+  const list = monthTxs();
+  const inc = list.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const exp = list.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const bal = inc-exp;
+  document.getElementById('srow').innerHTML = `
+    <div class="sc"><div class="slbl">수입</div><div class="sval i">${fmt(inc)}</div></div>
+    <div class="sc"><div class="slbl">지출</div><div class="sval e">${fmt(exp)}</div></div>
+    <div class="sc"><div class="slbl">잔액</div><div class="sval" style="color:${bal>=0?'var(--inc)':'var(--exp)'}">${bal<0?'-':''}${fmt(bal)}</div></div>
+  `;
+
+  // 컨텐츠
+  if (curTab==='list') renderList();
+  else if (curTab==='stats') renderStats();
+  else renderTogether();
+}
+
+// ── 내역 ──
+function renderList() {
+  let list = monthTxs();
+  if (fChip==='husband') list = list.filter(t=>t.user==='husband');
+  else if (fChip==='wife') list = list.filter(t=>t.user==='wife');
+  else if (fChip==='expense') list = list.filter(t=>t.type==='expense');
+  else if (fChip==='income') list = list.filter(t=>t.type==='income');
+
+  const chips = [['all','전체'],['husband','남편'],['wife','아내'],['expense','지출'],['income','수입']];
+  let html = `<div class="chips">${chips.map(([v,l])=>`
+    <div class="chip ${fChip===v?'on':''}" onclick="setChip('${v}')">${l}</div>`).join('')}
+  </div>`;
+
+  if (!list.length) {
+    html += `<div class="empty"><div class="empty-icon">📝</div>내역이 없어요<br>
+      <small style="display:block;margin-top:8px;font-size:12px">+ 버튼으로 추가해보세요</small></div>`;
+    document.getElementById('scroll').innerHTML = html;
+    return;
+  }
+
+  const groups = {};
+  list.forEach(t => (groups[t.date]=groups[t.date]||[]).push(t));
+
+  Object.keys(groups).sort((a,b)=>b.localeCompare(a)).forEach(date => {
+    const g = groups[date];
+    const di = g.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+    const de = g.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+    const d = new Date(date+'T00:00:00');
+    const dn = ['일','월','화','수','목','금','토'][d.getDay()];
+    let sub='';
+    if(di) sub+=`<span style="color:var(--inc)">+${fmt(di)}</span>`;
+    if(de) sub+=(sub?' ':'')+`<span style="color:var(--exp)">-${fmt(de)}</span>`;
+
+    html += `<div class="dg"><div class="dhd"><span>${d.getMonth()+1}월 ${d.getDate()}일 (${dn})</span><span>${sub}</span></div>`;
+    g.sort((a,b)=>(b.ts||0)-(a.ts||0)).forEach(t => {
+      const c=getcat(t.cat), col=CC[t.cat]||'#888';
+      html += `<div class="txc" onclick="openEdit('${t.id}')">
+        <div class="txicon" style="background:${col}20">${c.e}</div>
+        <div class="txbody">
+          <div class="txdesc">${esc(t.desc||c.n)}</div>
+          <div class="txsub">
+            <span class="badge ${t.user==='husband'?'h':'w'}">${t.user==='husband'?'남편':'아내'}</span>
+            <span>${c.n}</span>
+          </div>
+        </div>
+        <div class="txamt ${t.type==='income'?'i':'e'}">${t.type==='income'?'+':'-'}${fmt(t.amount)}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+
+  document.getElementById('scroll').innerHTML = html;
+}
+
+// ── 통계 ──
+function renderStats() {
+  const list = monthTxs();
+  const exps = list.filter(t=>t.type==='expense');
+  const catMap={};
+  exps.forEach(t=>{ catMap[t.cat]=(catMap[t.cat]||0)+t.amount; });
+  const sorted = Object.entries(catMap).sort((a,b)=>b[1]-a[1]);
+  const total = exps.reduce((s,t)=>s+t.amount,0);
+
+  const bars=[];
+  for(let i=5;i>=0;i--){
+    const d=new Date(curMonth.getFullYear(),curMonth.getMonth()-i,1);
+    const y=d.getFullYear(),m=d.getMonth();
+    const sum=txs.filter(t=>{const td=new Date(t.date+'T00:00:00');return td.getFullYear()===y&&td.getMonth()===m&&t.type==='expense';}).reduce((s,t)=>s+t.amount,0);
+    bars.push({label:`${m+1}월`,amount:sum});
+  }
+  const maxB=Math.max(...bars.map(b=>b.amount),1);
+
+  let html=`<div class="ssec"><div class="stitle">월별 지출 추이</div>`;
+  bars.forEach(b=>{
+    html+=`<div class="brow">
+      <div class="blbl">${b.label}</div>
+      <div class="btrack"><div class="bfill" style="width:${b.amount/maxB*100}%;background:var(--exp)"></div></div>
+      <div class="bamt">${b.amount?fmt(b.amount):'—'}</div>
+    </div>`;
+  });
+  html+=`</div>`;
+
+  if(sorted.length){
+    html+=`<div class="ssec"><div class="stitle">카테고리별 지출</div>`;
+    sorted.slice(0,7).forEach(([cid,amt])=>{
+      const c=getcat(cid),col=CC[cid]||'#888',pct=total?Math.round(amt/total*100):0,cnt=exps.filter(t=>t.cat===cid).length;
+      html+=`<div class="citem">
+        <div class="cleft">
+          <div class="cibox" style="background:${col}20">${c.e}</div>
+          <div><div class="cname">${c.n}</div><div class="csub">${cnt}건 · ${pct}%</div></div>
+        </div>
+        <div class="camt">-${fmt(amt)}</div>
+      </div>`;
+    });
+    html+=`</div>`;
+  } else {
+    html+=`<div class="empty"><div class="empty-icon">📊</div>이번 달 지출이 없어요</div>`;
+  }
+  document.getElementById('scroll').innerHTML=html;
+}
+
+// ── 함께 ──
+function renderTogether() {
+  const list=monthTxs();
+  const hI=list.filter(t=>t.user==='husband'&&t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const wI=list.filter(t=>t.user==='wife'&&t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const hE=list.filter(t=>t.user==='husband'&&t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const wE=list.filter(t=>t.user==='wife'&&t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const totE=hE+wE;
+
+  let html=`<div class="ssec"><div class="stitle">지출 비교</div>
+    <div class="brow">
+      <div class="blbl" style="color:var(--hb)">남편</div>
+      <div class="btrack" style="height:10px"><div class="bfill" style="width:${totE?hE/totE*100:0}%;background:var(--hb)"></div></div>
+      <div class="bamt" style="color:var(--hb)">${hE?fmt(hE):'—'}</div>
+    </div>
+    <div class="brow">
+      <div class="blbl" style="color:var(--wb)">아내</div>
+      <div class="btrack" style="height:10px"><div class="bfill" style="width:${totE?wE/totE*100:0}%;background:var(--wb)"></div></div>
+      <div class="bamt" style="color:var(--wb)">${wE?fmt(wE):'—'}</div>
+    </div>
+  </div>
+  <div class="tgrid">
+    <div class="sc"><div class="slbl">남편 수입</div><div class="sval i" style="font-size:13px">${hI?fmt(hI):'—'}</div></div>
+    <div class="sc"><div class="slbl">아내 수입</div><div class="sval i" style="font-size:13px">${wI?fmt(wI):'—'}</div></div>
+    <div class="sc"><div class="slbl">남편 지출</div><div class="sval e" style="font-size:13px">${hE?fmt(hE):'—'}</div></div>
+    <div class="sc"><div class="slbl">아내 지출</div><div class="sval e" style="font-size:13px">${wE?fmt(wE):'—'}</div></div>
+  </div>`;
+
+  const diff=hE-wE;
+  if(diff!==0){
+    const who=diff>0?'남편':'아내', col=diff>0?'var(--hb)':'var(--wb)';
+    html+=`<div class="ssec" style="text-align:center;padding:20px 16px">
+      <div style="font-size:12px;color:var(--t3);margin-bottom:8px">${who}이 이번 달 더 많이 지출했어요</div>
+      <div style="font-family:'DM Mono',monospace;font-size:30px;font-weight:500;color:${col}">${fmt(Math.abs(diff))}</div>
+      <div style="font-size:11px;color:var(--t3);margin-top:4px">차이</div>
+    </div>`;
+  }
+
+  html+=`<div class="ssec" style="text-align:center">
+    <div class="stitle">공유 코드</div>
+    <div style="font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:var(--acc);margin:8px 0;word-break:break-all">${esc(room)}</div>
+    <div style="font-size:12px;color:var(--t3)">집사람과 같은 코드를 입력하면 자동으로 공유돼요</div>
+  </div>`;
+
+  document.getElementById('scroll').innerHTML=html;
+}
+
+// ── 컨트롤 ──
+function toggleUser(u) { viewUser=viewUser===u?'all':u; render(); }
+function chMonth(d) { curMonth=new Date(curMonth.getFullYear(),curMonth.getMonth()+d,1); render(); }
+function setTab(el) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  curTab=el.dataset.tab;
+  // 컨텐츠만 재렌더 (헤더/요약은 불필요)
+  if(curTab==='list') renderList();
+  else if(curTab==='stats') renderStats();
+  else renderTogether();
+}
+function setChip(v) { fChip=v; renderList(); }
+
+// ── 시트 ──
+function openAdd() {
+  editId=null; fType='expense'; fCat='';
+  fUser=(myName.includes('아내')||myName.includes('와이프')||myName.toLowerCase().includes('wife'))?'wife':'husband';
+  document.getElementById('shtitle').textContent='내역 추가';
+  document.getElementById('fAmt').value='';
+  document.getElementById('fDesc').value='';
+  document.getElementById('fDate').value=today();
+  document.getElementById('subbtn').textContent='추가하기';
+  document.getElementById('subbtn').disabled=false;
+  document.getElementById('delbtn').style.display='none';
+  refreshSheet();
+  document.getElementById('ov').classList.add('open');
+}
+
+function openEdit(id) {
+  const t=txs.find(x=>x.id===id);
+  if(!t) { toast('내역을 찾을 수 없어요'); return; }
+  editId=id; fType=t.type; fUser=t.user; fCat=t.cat;
+  document.getElementById('shtitle').textContent='내역 수정';
+  document.getElementById('fAmt').value=t.amount;
+  document.getElementById('fDesc').value=t.desc||'';
+  document.getElementById('fDate').value=t.date;
+  document.getElementById('subbtn').textContent='수정하기';
+  document.getElementById('subbtn').disabled=false;
+  document.getElementById('delbtn').style.display='block';
+  refreshSheet();
+  document.getElementById('ov').classList.add('open');
+}
+
+function mayClose(e) {
+  if(e.target===document.getElementById('ov')) closeSheet();
+}
+function closeSheet() {
+  document.getElementById('ov').classList.remove('open');
+  submitting=false;
+  document.getElementById('subbtn').disabled=false;
+}
+
+function setType(t) { fType=t; fCat=''; refreshSheet(); }
+function setFUser(u) { fUser=u; refreshSheet(); }
+
+function refreshSheet() {
+  document.getElementById('bExp').classList.toggle('on',fType==='expense');
+  document.getElementById('bInc').classList.toggle('on',fType==='income');
+  document.getElementById('bH').classList.toggle('on',fUser==='husband');
+  document.getElementById('bW').classList.toggle('on',fUser==='wife');
+  const cats=fType==='expense'?CE:CI;
+  document.getElementById('cgrid').innerHTML=cats.map(c=>
+    `<div class="cbtn ${fCat===c.id?'on':''}" onclick="selCat('${c.id}')"><span class="ei">${c.e}</span>${c.n}</div>`
+  ).join('');
+}
+function selCat(id) { fCat=id; refreshSheet(); }
+
+// ── 저장 ──
+async function doSubmit() {
+  if (submitting) return;   // 중복 탭 방지
+  const amount=parseFloat(document.getElementById('fAmt').value);
+  const desc=document.getElementById('fDesc').value.trim();
+  const date=document.getElementById('fDate').value;
+  if (!amount||amount<=0) { toast('금액을 입력해주세요'); return; }
+  if (!date) { toast('날짜를 선택해주세요'); return; }
+  if (!fCat) { toast('카테고리를 선택해주세요'); return; }
+
+  submitting=true;
+  document.getElementById('subbtn').disabled=true;
+
+  const data={ type:fType, user:fUser, cat:fCat, amount, desc, date };
+
+  closeSheet(); // 먼저 닫기
+
+  try {
+    if (editId) {
+      await window.__update(editId, data);
+      // onSnapshot이 자동으로 txs 갱신 + render() 실행
+    } else {
+      await window.__add(room, data);
+      // onSnapshot이 자동으로 txs 갱신 + render() 실행
+    }
+  } catch(e) {
+    console.error('[doSubmit]', e);
+    toast('저장 실패: ' + e.message);
+    setSyncDot('err');
+  }
+}
+
+// ── 삭제 ──
+async function doDelete() {
+  if (!editId) return;
+  if (!confirm('이 내역을 삭제할까요?')) return;
+
+  closeSheet();
+
+  try {
+    await window.__delete(editId);
+    // onSnapshot이 자동으로 txs 갱신 + render() 실행
+  } catch(e) {
+    console.error('[doDelete]', e);
+    toast('삭제 실패: ' + e.message);
+    setSyncDot('err');
+  }
+}
+</script>
+</body>
+</html>
